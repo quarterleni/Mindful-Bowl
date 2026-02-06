@@ -1,0 +1,26 @@
+{
+  "name": "Mindful Bowl - Meditation App",
+  "short_name": "Mindful Bowl",
+  "description": "A simple 3-minute mindful breathing meditation app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f1e8",
+  "theme_color": "#c89b66",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle", "meditation"],
+  "lang": "en-US"
+}

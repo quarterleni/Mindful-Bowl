@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A simple 3-minute mindful breathing meditation app">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>Mindful Bowl - 3 Minute Meditation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="screen active">
+        <div class="welcome-content">
+            <h1 class="app-title">Mindful Bowl</h1>
+            <p class="app-subtitle">3 minutes of calm, one breath at a time</p>
+            
+            <div class="bowl-preview">
+                <div class="bowl-icon">🎵</div>
+            </div>
+            
+            <div class="quick-guide">
+                <p>Tap the bowl with each breath in</p>
+                <p class="guide-sub">Breathe out slowly, then repeat</p>
+            </div>
+            
+            <button id="startBtn" class="primary-btn">Start Session</button>
+            
+            <div class="stats-preview">
+                <div class="stat">
+                    <span class="stat-number" id="totalSessions">0</span>
+                    <span class="stat-label">Sessions</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="currentStreak">0</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meditation Session Screen -->
+    <div id="sessionScreen" class="screen">
+        <div class="session-header">
+            <div class="timer-display">
+                <span id="timerMinutes">3</span>:<span id="timerSeconds">00</span>
+            </div>
+            <button id="exitBtn" class="icon-btn">✕</button>
+        </div>
+
+        <div class="session-content">
+            <div class="breath-instruction" id="breathInstruction">
+                Breathe in deeply, tap the bowl
+            </div>
+
+            <div class="bowl-container">
+                <div class="bowl-glow" id="bowlGlow"></div>
+                <div class="singing-bowl" id="singingBowl">
+                    <div class="bowl-inner"></div>
+                    <div class="ripple" id="ripple1"></div>
+                    <div class="ripple" id="ripple2"></div>
+                    <div class="ripple" id="ripple3"></div>
+                </div>
+            </div>
+
+            <div class="breath-counter">
+                <span id="breathCount">0</span>
+                <span class="counter-label">breaths</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completionScreen" class="screen">
+        <div class="completion-content">
+            <div class="completion-icon">✨</div>
+            <h2 class="completion-title">Session Complete</h2>
+            
+            <div class="session-summary">
+                <div class="summary-item">
+                    <span class="summary-number" id="completionBreaths">0</span>
+                    <span class="summary-label">breaths taken</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-number">3:00</span>
+                    <span class="summary-label">minutes</span>
+                </div>
+            </div>
+
+            <p class="completion-message">Take a moment to notice how you feel</p>
+
+            <div class="completion-actions">
+                <button id="anotherSessionBtn" class="primary-btn">Another Session</button>
+                <button id="doneBtn" class="secondary-btn">Done for Now</button>
+            </div>
+
+            <div class="daily-reminder">
+                <p class="reminder-text">
+                    <span id="sessionsToday">1</span> session today • 
+                    Try for 2-3 short sessions daily
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Icon (always visible) -->
+    <button id="settingsBtn" class="settings-icon" aria-label="Settings">⚙️</button>
+
+    <!-- Simple Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="volumeControl">Sound Volume</label>
+                    <input type="range" id="volumeControl" min="0" max="100" value="70">
+                </div>
+                <div class="setting-item">
+                    <label for="hapticToggle">Haptic Feedback</label>
+                    <input type="checkbox" id="hapticToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <button id="resetDataBtn" class="danger-btn">Reset All Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
