@@ -19,13 +19,22 @@
     box-sizing: border-box;
 }
 
+/* Prevent iOS bounce and improve mobile experience */
+html, body {
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
 body {
     font-family: 'Georgia', 'Baskerville', serif;
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     color: var(--text-primary);
     min-height: 100vh;
-    overflow: hidden;
     position: relative;
+    touch-action: manipulation; /* Prevent double-tap zoom */
 }
 
 /* Subtle texture overlay */
@@ -593,9 +602,207 @@ body::before {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+
+/* Small phones (portrait) */
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+
+    /* Welcome Screen */
+    .welcome-content {
+        padding: 1rem;
+    }
+
+    .app-title {
+        font-size: 2rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .app-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    .bowl-icon {
+        font-size: 3.5rem;
+    }
+
+    .bowl-preview {
+        margin: 2rem 0;
+    }
+
+    .quick-guide {
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .quick-guide p {
+        font-size: 0.9rem;
+    }
+
+    .guide-sub {
+        font-size: 0.85rem;
+    }
+
+    .primary-btn {
+        padding: 0.9rem 2.5rem;
+        font-size: 1rem;
+    }
+
+    .stats-preview {
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+    }
+
+    /* Session Screen */
+    .session-header {
+        top: 1rem;
+        padding: 0 1rem;
+    }
+
+    .timer-display {
+        font-size: 1.8rem;
+    }
+
+    .icon-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+
+    .session-content {
+        padding: 1rem;
+    }
+
+    .breath-instruction {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .bowl-container {
+        width: 220px;
+        height: 220px;
+        margin: 1.5rem 0;
+    }
+
+    .bowl-inner {
+        width: 150px;
+        height: 150px;
+    }
+
+    .breath-counter span:first-child {
+        font-size: 3rem;
+    }
+
+    .counter-label {
+        font-size: 0.9rem;
+    }
+
+    .breath-counter {
+        margin-top: 2rem;
+    }
+
+    /* Completion Screen */
+    .completion-content {
+        padding: 1rem;
+    }
+
+    .completion-icon {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .completion-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .session-summary {
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+        padding: 1.5rem;
+    }
+
+    .summary-number {
+        font-size: 2rem;
+    }
+
+    .summary-label {
+        font-size: 0.85rem;
+    }
+
+    .completion-message {
+        font-size: 0.95rem;
+        margin: 1.5rem 0;
+    }
+
+    .completion-actions {
+        gap: 0.8rem;
+        margin: 1.5rem 0;
+    }
+
+    .secondary-btn {
+        padding: 0.7rem 1.8rem;
+        font-size: 0.95rem;
+    }
+
+    .daily-reminder {
+        margin-top: 1.5rem;
+        padding: 0.8rem;
+    }
+
+    .reminder-text {
+        font-size: 0.85rem;
+    }
+
+    /* Settings */
+    .settings-icon {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 55px;
+        height: 55px;
+        font-size: 1.3rem;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+        width: 92%;
+    }
+
+    .modal-header h3 {
+        font-size: 1.5rem;
+    }
+
+    .setting-item {
+        margin-bottom: 1.2rem;
+    }
+}
+
+/* Medium phones and small tablets (portrait) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .welcome-content {
+        padding: 1.5rem;
+    }
+
     .app-title {
         font-size: 2.5rem;
+    }
+
+    .app-subtitle {
+        font-size: 1rem;
+    }
+
+    .bowl-icon {
+        font-size: 4rem;
     }
 
     .bowl-container {
@@ -615,10 +822,237 @@ body::before {
     .stats-preview {
         gap: 2rem;
     }
+
+    .session-header {
+        top: 1.5rem;
+        padding: 0 1.5rem;
+    }
+
+    .breath-instruction {
+        font-size: 1.1rem;
+    }
+
+    .completion-title {
+        font-size: 2rem;
+    }
+
+    .session-summary {
+        gap: 2rem;
+    }
+}
+
+/* Landscape mode for phones */
+@media (max-height: 600px) and (orientation: landscape) {
+    .welcome-content {
+        padding: 1rem;
+        max-width: 90%;
+    }
+
+    .app-title {
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .app-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .bowl-preview {
+        margin: 1rem 0;
+    }
+
+    .bowl-icon {
+        font-size: 2.5rem;
+    }
+
+    .quick-guide {
+        padding: 0.8rem 1.5rem;
+        margin: 1rem 0;
+    }
+
+    .quick-guide p {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .primary-btn {
+        padding: 0.7rem 2rem;
+        font-size: 0.95rem;
+    }
+
+    .stats-preview {
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+
+    /* Session Screen Landscape */
+    .session-header {
+        top: 0.5rem;
+        padding: 0 1rem;
+    }
+
+    .timer-display {
+        font-size: 1.5rem;
+    }
+
+    .icon-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .session-content {
+        padding: 0.5rem 1rem;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    .breath-instruction {
+        font-size: 0.9rem;
+        margin-bottom: 0;
+        position: absolute;
+        top: 3.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+
+    .bowl-container {
+        width: 180px;
+        height: 180px;
+        margin: 0;
+    }
+
+    .bowl-inner {
+        width: 130px;
+        height: 130px;
+    }
+
+    .breath-counter {
+        margin-top: 0;
+        margin-left: 2rem;
+    }
+
+    .breath-counter span:first-child {
+        font-size: 2.5rem;
+    }
+
+    /* Completion Screen Landscape */
+    .completion-content {
+        padding: 1rem;
+        max-width: 90%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .completion-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .completion-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .session-summary {
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        gap: 2rem;
+    }
+
+    .summary-number {
+        font-size: 1.8rem;
+    }
+
+    .completion-message {
+        font-size: 0.9rem;
+        margin: 1rem 0;
+    }
+
+    .completion-actions {
+        flex-direction: row;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+
+    .daily-reminder {
+        margin-top: 1rem;
+        padding: 0.6rem;
+    }
+
+    .reminder-text {
+        font-size: 0.8rem;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+    .app-title {
+        font-size: 1.8rem;
+    }
+
+    .bowl-container {
+        width: 200px;
+        height: 200px;
+    }
+
+    .bowl-inner {
+        width: 140px;
+        height: 140px;
+    }
+
+    .primary-btn {
+        padding: 0.8rem 2rem;
+    }
+
+    .stats-preview {
+        gap: 1rem;
+    }
+
+    .session-summary {
+        gap: 1rem;
+        padding: 1rem;
+    }
+}
+
+/* Tablets (portrait) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .welcome-content,
+    .completion-content {
+        max-width: 600px;
+    }
+
+    .modal-content {
+        max-width: 500px;
+    }
 }
 
 /* Loading state for PWA */
 .loading {
     pointer-events: none;
     opacity: 0.6;
+}
+
+/* Prevent text selection on interactive elements */
+.singing-bowl,
+.primary-btn,
+.secondary-btn,
+.icon-btn {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
