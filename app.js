@@ -116,9 +116,19 @@ function vibrate() {
     }
 }
 
-// Bowl tap interaction
+// Bowl tap interaction with debouncing to prevent double-taps
+let lastTapTime = 0;
+const TAP_DELAY = 300; // Minimum milliseconds between taps
+
 function onBowlTap() {
     if (!state.sessionActive) return;
+    
+    // Debounce: prevent rapid double-taps
+    const now = Date.now();
+    if (now - lastTapTime < TAP_DELAY) {
+        return; // Ignore this tap, too soon
+    }
+    lastTapTime = now;
     
     // Play sound
     playSingingBowl();
@@ -362,12 +372,25 @@ buttons.exit.addEventListener('click', () => {
 buttons.anotherSession.addEventListener('click', startSession);
 buttons.done.addEventListener('click', () => showScreen('welcome'));
 
-bowl.addEventListener('click', onBowlTap);
+// Bowl interaction - handle both touch and mouse
+// Use passive: false to allow preventDefault
+let touchUsed = false;
 
-// Touch support for mobile
 bowl.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent mouse events from firing
+    touchUsed = true;
     onBowlTap();
+}, { passive: false });
+
+bowl.addEventListener('click', (e) => {
+    // Only trigger if touch wasn't used (for desktop)
+    if (!touchUsed) {
+        onBowlTap();
+    }
+    // Reset after a short delay
+    setTimeout(() => {
+        touchUsed = false;
+    }, 100);
 });
 
 // Settings
