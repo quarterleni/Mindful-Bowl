@@ -93,6 +93,48 @@
                 </div>
             </div>
 
+            <!-- FREE: Breath Rate -->
+            <div class="analysis-section free-feature">
+                <h3 class="analysis-title">Breath Rate</h3>
+                <div class="analysis-metric">
+                    <span class="metric-value" id="bpmDisplay">0</span>
+                    <span class="metric-unit">BPM</span>
+                </div>
+                <p class="metric-label" id="bpmInterpretation">Calculating...</p>
+            </div>
+
+            <!-- PREMIUM: Detailed Analysis -->
+            <div class="analysis-section premium-feature locked">
+                <div class="premium-overlay">
+                    <div class="lock-icon">🔒</div>
+                    <p class="premium-text">Unlock Premium for detailed breath analysis</p>
+                    <button class="mini-unlock-btn" onclick="document.getElementById('settingsBtn').click()">View Premium</button>
+                </div>
+                
+                <div class="premium-content">
+                    <h3 class="analysis-title">Advanced Metrics</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Consistency</span>
+                            <span class="metric-value" id="consistencyDisplay">--</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Relaxation Score</span>
+                            <span class="metric-value" id="relaxationDisplay">--</span>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-box" id="insightDisplay">
+                        Your personalized insight will appear here...
+                    </div>
+                    
+                    <div class="pattern-box" id="patternDisplay">
+                        Breathing pattern detection...
+                    </div>
+                </div>
+            </div>
+
             <p class="completion-message">Take a moment to notice how you feel</p>
 
             <div class="completion-actions">
@@ -128,6 +170,36 @@
                     <label for="hapticToggle">Haptic Feedback</label>
                     <input type="checkbox" id="hapticToggle" checked>
                 </div>
+                <div class="setting-item">
+                    <label for="tapOnExhaleToggle">
+                        Tap on Exhale
+                        <span class="setting-hint">(Recommended for relaxation)</span>
+                    </label>
+                    <div class="toggle-with-label">
+                        <input type="checkbox" id="tapOnExhaleToggle" checked>
+                        <span class="toggle-info">When off, tap on inhale instead</span>
+                    </div>
+                </div>
+                
+                <div class="setting-divider"></div>
+                
+                <div class="setting-item premium-section">
+                    <h4 class="premium-heading">Premium Features 💎</h4>
+                    <ul class="premium-features-list">
+                        <li>✓ Breath rhythm consistency analysis</li>
+                        <li>✓ Personalized relaxation score</li>
+                        <li>✓ AI-powered breathing insights</li>
+                        <li>✓ Breathing pattern detection</li>
+                        <li>✓ Session history & trends</li>
+                    </ul>
+                    <button id="unlockPremiumBtn" class="primary-btn">
+                        Unlock Premium (Coming Soon)
+                    </button>
+                    <p class="premium-note">Temporary: Click to unlock for testing</p>
+                </div>
+                
+                <div class="setting-divider"></div>
+                
                 <div class="setting-item">
                     <button id="resetDataBtn" class="danger-btn">Reset All Data</button>
                 </div>
