@@ -10,7 +10,16 @@ const state = {
     sessionsToday: 0,
     todayDate: null,
     volume: 0.7,
-    hapticEnabled: true
+    hapticEnabled: true,
+    tapOnExhale: true, // true = exhale (default), false = inhale
+    isPremium: false, // Premium features unlocked
+    
+    // Breath tracking for current session
+    breathTimestamps: [],
+    sessionStartTime: null,
+    
+    // Historical data for analytics
+    sessionHistory: [] // Stores past session analytics
 };
 
 // DOM Elements
@@ -130,6 +139,9 @@ function onBowlTap() {
     }
     lastTapTime = now;
     
+    // Record breath timestamp for analysis
+    state.breathTimestamps.push(now);
+    
     // Play sound
     playSingingBowl();
     
@@ -152,9 +164,204 @@ function onBowlTap() {
     updateBreathDisplay();
 }
 
+// ========== BREATH ANALYSIS FUNCTIONS ==========
+
+// Calculate breaths per minute (FREE feature)
+function calculateBPM(timestamps, sessionDuration) {
+    if (timestamps.length < 2) return 0;
+    const totalBreaths = timestamps.length;
+    const durationMinutes = sessionDuration / 60;
+    return Math.round((totalBreaths / durationMinutes) * 10) / 10; // Round to 1 decimal
+}
+
+// Calculate gaps between breaths in seconds
+function calculateBreathGaps(timestamps) {
+    const gaps = [];
+    for (let i = 1; i < timestamps.length; i++) {
+        const gap = (timestamps[i] - timestamps[i - 1]) / 1000; // Convert to seconds
+        gaps.push(gap);
+    }
+    return gaps;
+}
+
+// Calculate average breath gap
+function calculateAverageGap(gaps) {
+    if (gaps.length === 0) return 0;
+    const sum = gaps.reduce((a, b) => a + b, 0);
+    return Math.round((sum / gaps.length) * 10) / 10;
+}
+
+// Calculate consistency score (PREMIUM)
+function calculateConsistency(gaps) {
+    if (gaps.length < 2) return 0;
+    
+    // Calculate mean
+    const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    
+    // Calculate standard deviation
+    const variance = gaps.reduce((sum, gap) => sum + Math.pow(gap - mean, 2), 0) / gaps.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Convert to 0-100 score (lower stdDev = higher consistency)
+    // A stdDev of 0 = 100%, stdDev of 5+ = 0%
+    const consistencyScore = Math.max(0, Math.min(100, 100 - (stdDev * 20)));
+    return Math.round(consistencyScore);
+}
+
+// Calculate relaxation score (PREMIUM)
+function calculateRelaxationScore(bpm, consistency, avgGap) {
+    // Ideal ranges based on meditation research
+    const idealBPM = 6;      // 6 breaths per minute = highly relaxed
+    const idealGap = 10;     // 10 seconds per breath cycle
+    
+    // BPM score (0-100) - closer to 6 is better
+    const bpmDiff = Math.abs(bpm - idealBPM);
+    const bpmScore = Math.max(0, 100 - (bpmDiff * 10));
+    
+    // Gap score (0-100) - closer to 10 seconds is better
+    const gapDiff = Math.abs(avgGap - idealGap);
+    const gapScore = Math.max(0, 100 - (gapDiff * 5));
+    
+    // Weighted average: consistency matters most
+    const relaxationScore = (bpmScore * 0.3) + (consistency * 0.4) + (gapScore * 0.3);
+    return Math.round(relaxationScore);
+}
+
+// Generate personalized insight based on metrics (PREMIUM)
+function generateInsight(bpm, consistency, relaxationScore) {
+    let insight = "";
+    
+    // BPM-based insight
+    if (bpm < 6) {
+        insight = "Exceptional! You're in a deeply meditative state. 🌙";
+    } else if (bpm < 10) {
+        insight = "Well done! You've achieved a very relaxed state. 😌";
+    } else if (bpm < 15) {
+        insight = "Good session! Your breathing is calm and steady. ✨";
+    } else {
+        insight = "Keep practicing! Try to slow down your breath a bit. 💪";
+    }
+    
+    // Add consistency feedback
+    if (consistency > 85) {
+        insight += " Your rhythm is excellent and very consistent.";
+    } else if (consistency > 70) {
+        insight += " Your rhythm is good with room to improve.";
+    } else if (consistency < 60) {
+        insight += " Try to find a steady, rhythmic pattern.";
+    }
+    
+    // Overall encouragement
+    if (relaxationScore > 80) {
+        insight += " This is exactly what meditation should feel like! 🧘‍♂️";
+    }
+    
+    return insight;
+}
+
+// Detect breathing pattern (PREMIUM)
+function detectBreathingPattern(avgGap) {
+    if (avgGap >= 4.5 && avgGap <= 5.5) {
+        return {
+            name: "Coherent Breathing",
+            description: "You're naturally breathing in a 5-5 pattern. This is scientifically proven to balance your nervous system. 🧬"
+        };
+    } else if (avgGap >= 6 && avgGap <= 8) {
+        return {
+            name: "Deep Relaxation Breathing",
+            description: "Your breath pattern indicates deep relaxation and parasympathetic activation. 🌊"
+        };
+    } else if (avgGap >= 3 && avgGap <= 4) {
+        return {
+            name: "Box Breathing",
+            description: "Similar to Navy SEAL box breathing - great for stress management. 📦"
+        };
+    } else if (avgGap < 3) {
+        return {
+            name: "Rapid Breathing",
+            description: "Your breathing is quite fast. Try to slow down for deeper relaxation. ⚡"
+        };
+    } else {
+        return {
+            name: "Custom Breathing Pattern",
+            description: "You have a unique breathing rhythm. Keep exploring what feels right. ✨"
+        };
+    }
+}
+
+// Analyze session and create report
+function analyzeSession() {
+    const sessionDuration = 180; // 3 minutes
+    const timestamps = state.breathTimestamps;
+    
+    if (timestamps.length < 2) {
+        return {
+            breathCount: state.breathCount,
+            bpm: 0,
+            message: "Not enough data for analysis. Try tapping more during your session."
+        };
+    }
+    
+    // Calculate all metrics
+    const bpm = calculateBPM(timestamps, sessionDuration);
+    const gaps = calculateBreathGaps(timestamps);
+    const avgGap = calculateAverageGap(gaps);
+    const consistency = calculateConsistency(gaps);
+    const relaxationScore = calculateRelaxationScore(bpm, consistency, avgGap);
+    const insight = generateInsight(bpm, consistency, relaxationScore);
+    const pattern = detectBreathingPattern(avgGap);
+    
+    // Create analysis object
+    const analysis = {
+        // Free data
+        breathCount: state.breathCount,
+        bpm: bpm,
+        sessionDate: new Date().toISOString(),
+        
+        // Premium data
+        premium: {
+            avgGap: avgGap,
+            consistency: consistency,
+            relaxationScore: relaxationScore,
+            insight: insight,
+            pattern: pattern,
+            breathGaps: gaps,
+            longestGap: Math.max(...gaps),
+            shortestGap: Math.min(...gaps)
+        }
+    };
+    
+    return analysis;
+}
+
+// Save session to history (for trends)
+function saveSessionAnalysis(analysis) {
+    // Add to history
+    state.sessionHistory.push(analysis);
+    
+    // Keep only last 30 sessions
+    if (state.sessionHistory.length > 30) {
+        state.sessionHistory = state.sessionHistory.slice(-30);
+    }
+    
+    saveData();
+}
+
 // Update breath counter
 function updateBreathDisplay() {
     document.getElementById('breathCount').textContent = state.breathCount;
+}
+
+// Update breath instruction based on tap setting
+function updateBreathInstruction() {
+    const instruction = document.getElementById('breathInstruction');
+    if (instruction) {
+        if (state.tapOnExhale) {
+            instruction.textContent = "Breathe in deeply, breathe out, tap the bowl";
+        } else {
+            instruction.textContent = "Breathe in deeply, tap the bowl";
+        }
+    }
 }
 
 // Timer functions
@@ -196,10 +403,13 @@ function showScreen(screenName) {
 function startSession() {
     state.sessionActive = true;
     state.breathCount = 0;
+    state.breathTimestamps = []; // Reset breath tracking
+    state.sessionStartTime = Date.now(); // Record start time
     updateBreathDisplay();
     showScreen('session');
     startTimer();
     initAudio(); // Ensure audio is initialized
+    updateBreathInstruction(); // Update instruction based on exhale/inhale setting
 }
 
 // End session
@@ -207,20 +417,87 @@ function endSession() {
     state.sessionActive = false;
     stopTimer();
     
+    // Analyze the session
+    const analysis = analyzeSession();
+    saveSessionAnalysis(analysis);
+    
     // Update stats
     state.totalSessions++;
     updateTodaySessions();
     updateStreak();
     saveData();
     
-    // Show completion screen
-    document.getElementById('completionBreaths').textContent = state.breathCount;
-    document.getElementById('sessionsToday').textContent = state.sessionsToday;
+    // Display results on completion screen
+    displaySessionResults(analysis);
     
     showScreen('completion');
     
     // Play completion sound
     playCompletionSound();
+}
+
+// Display session results with free and premium data
+function displaySessionResults(analysis) {
+    // Always show: breath count
+    document.getElementById('completionBreaths').textContent = analysis.breathCount;
+    document.getElementById('sessionsToday').textContent = state.sessionsToday;
+    
+    // Always show: BPM (FREE feature)
+    const bpmDisplay = document.getElementById('bpmDisplay');
+    if (bpmDisplay) {
+        bpmDisplay.textContent = analysis.bpm;
+    }
+    
+    // Show BPM interpretation (FREE)
+    const bpmInterpretation = document.getElementById('bpmInterpretation');
+    if (bpmInterpretation) {
+        let interpretation = "";
+        if (analysis.bpm < 6) {
+            interpretation = "Deeply relaxed";
+        } else if (analysis.bpm < 10) {
+            interpretation = "Very relaxed";
+        } else if (analysis.bpm < 15) {
+            interpretation = "Calm";
+        } else {
+            interpretation = "Active";
+        }
+        bpmInterpretation.textContent = interpretation;
+    }
+    
+    // Premium features
+    if (state.isPremium && analysis.premium) {
+        // Show premium data
+        const consistencyDisplay = document.getElementById('consistencyDisplay');
+        const relaxationDisplay = document.getElementById('relaxationDisplay');
+        const insightDisplay = document.getElementById('insightDisplay');
+        const patternDisplay = document.getElementById('patternDisplay');
+        
+        if (consistencyDisplay) {
+            consistencyDisplay.textContent = analysis.premium.consistency + '%';
+        }
+        if (relaxationDisplay) {
+            relaxationDisplay.textContent = analysis.premium.relaxationScore;
+        }
+        if (insightDisplay) {
+            insightDisplay.textContent = analysis.premium.insight;
+        }
+        if (patternDisplay) {
+            patternDisplay.innerHTML = `
+                <strong>${analysis.premium.pattern.name}</strong><br>
+                <small>${analysis.premium.pattern.description}</small>
+            `;
+        }
+        
+        // Show premium sections
+        document.querySelectorAll('.premium-feature').forEach(el => {
+            el.classList.remove('locked');
+        });
+    } else {
+        // Show locked premium sections
+        document.querySelectorAll('.premium-feature').forEach(el => {
+            el.classList.add('locked');
+        });
+    }
 }
 
 function playCompletionSound() {
@@ -297,7 +574,10 @@ function saveData() {
         sessionsToday: state.sessionsToday,
         todayDate: state.todayDate,
         volume: state.volume,
-        hapticEnabled: state.hapticEnabled
+        hapticEnabled: state.hapticEnabled,
+        tapOnExhale: state.tapOnExhale,
+        isPremium: state.isPremium,
+        sessionHistory: state.sessionHistory
     };
     localStorage.setItem('mindfulBowlData', JSON.stringify(data));
 }
@@ -313,6 +593,9 @@ function loadData() {
         state.todayDate = data.todayDate || null;
         state.volume = data.volume || 0.7;
         state.hapticEnabled = data.hapticEnabled !== undefined ? data.hapticEnabled : true;
+        state.tapOnExhale = data.tapOnExhale !== undefined ? data.tapOnExhale : true;
+        state.isPremium = data.isPremium || false;
+        state.sessionHistory = data.sessionHistory || [];
         
         // Check if it's a new day
         const today = new Date().toDateString();
@@ -324,6 +607,7 @@ function loadData() {
         updateStatsDisplay();
         updateVolumeControl();
         updateHapticControl();
+        updateTapOnExhaleControl();
     }
 }
 
@@ -356,6 +640,13 @@ function updateVolumeControl() {
 
 function updateHapticControl() {
     document.getElementById('hapticToggle').checked = state.hapticEnabled;
+}
+
+function updateTapOnExhaleControl() {
+    const tapOnExhaleToggle = document.getElementById('tapOnExhaleToggle');
+    if (tapOnExhaleToggle) {
+        tapOnExhaleToggle.checked = state.tapOnExhale;
+    }
 }
 
 // Event Listeners
@@ -418,6 +709,28 @@ document.getElementById('hapticToggle').addEventListener('change', (e) => {
     state.hapticEnabled = e.target.checked;
     saveData();
 });
+
+// Tap on exhale/inhale toggle
+const tapOnExhaleToggle = document.getElementById('tapOnExhaleToggle');
+if (tapOnExhaleToggle) {
+    tapOnExhaleToggle.addEventListener('change', (e) => {
+        state.tapOnExhale = e.target.checked;
+        saveData();
+        updateBreathInstruction();
+    });
+}
+
+// Premium unlock button (temporary - for testing before payment integration)
+const unlockPremiumBtn = document.getElementById('unlockPremiumBtn');
+if (unlockPremiumBtn) {
+    unlockPremiumBtn.addEventListener('click', () => {
+        // For now, just unlock it (later this will trigger payment)
+        state.isPremium = true;
+        saveData();
+        alert('Premium features unlocked! 🎉\n\nYou now have access to:\n- Breath rhythm consistency\n- Relaxation score\n- Personalized insights\n- Breathing pattern detection\n- Session history & trends');
+        closeSettings();
+    });
+}
 
 // Reset data
 buttons.resetData.addEventListener('click', resetAllData);
