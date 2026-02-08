@@ -21,16 +21,43 @@
             <h1 class="app-title">Mindful Bowl</h1>
             <p class="app-subtitle">3 minutes of calm, one breath at a time</p>
             
-            <div class="bowl-preview">
-                <div class="bowl-icon">🎵</div>
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <button id="meditationModeBtn" class="mode-btn active">
+                    🧘‍♂️ Meditation
+                </button>
+                <button id="sleepModeBtn" class="mode-btn">
+                    🌙 Sleep
+                </button>
             </div>
             
-            <div class="quick-guide">
-                <p>Tap the bowl with each breath in</p>
-                <p class="guide-sub">Breathe out slowly, then repeat</p>
+            <!-- Meditation Mode Content -->
+            <div id="meditationModeContent" class="mode-content active">
+                <div class="bowl-preview">
+                    <div class="bowl-icon">🎵</div>
+                </div>
+                
+                <div class="quick-guide">
+                    <p>Tap the bowl with each breath in</p>
+                    <p class="guide-sub">Breathe out slowly, then repeat</p>
+                </div>
+                
+                <button id="startBtn" class="primary-btn">Start Meditation</button>
             </div>
             
-            <button id="startBtn" class="primary-btn">Start Session</button>
+            <!-- Sleep Mode Content -->
+            <div id="sleepModeContent" class="mode-content">
+                <div class="sleep-preview">
+                    <div class="sleep-icon">🌙</div>
+                </div>
+                
+                <div class="quick-guide">
+                    <p>Relax with calming soundscapes</p>
+                    <p class="guide-sub">Mix sounds, set timer, drift to sleep</p>
+                </div>
+                
+                <button id="startSleepBtn" class="primary-btn">Choose Sounds</button>
+            </div>
             
             <div class="stats-preview">
                 <div class="stat">
@@ -151,12 +178,142 @@
         </div>
     </div>
 
+    <!-- Sleep Sound Selection Screen -->
+    <div id="sleepSoundScreen" class="screen">
+        <div class="sleep-sound-content">
+            <div class="sleep-header">
+                <button id="backToWelcomeBtn" class="icon-btn">←</button>
+                <h2 class="screen-title">Sleep Sounds</h2>
+                <div class="icon-btn-spacer"></div>
+            </div>
+
+            <!-- Sound Selection Grid -->
+            <div class="sounds-grid">
+                <div class="sound-card free-sound" data-sound="rain">
+                    <div class="sound-icon">🌧️</div>
+                    <div class="sound-name">Rain</div>
+                    <div class="sound-badge free-badge">FREE</div>
+                </div>
+                <div class="sound-card free-sound" data-sound="ocean">
+                    <div class="sound-icon">🌊</div>
+                    <div class="sound-name">Ocean</div>
+                    <div class="sound-badge free-badge">FREE</div>
+                </div>
+                <div class="sound-card premium-sound" data-sound="brownnoise">
+                    <div class="sound-icon">📊</div>
+                    <div class="sound-name">Brown Noise</div>
+                    <div class="sound-badge premium-badge">PRO</div>
+                </div>
+                <div class="sound-card premium-sound" data-sound="campfire">
+                    <div class="sound-icon">🔥</div>
+                    <div class="sound-name">Campfire</div>
+                    <div class="sound-badge premium-badge">PRO</div>
+                </div>
+                <div class="sound-card premium-sound" data-sound="stream">
+                    <div class="sound-icon">💧</div>
+                    <div class="sound-name">Stream</div>
+                    <div class="sound-badge premium-badge">PRO</div>
+                </div>
+            </div>
+
+            <!-- Selected Sounds Mixer -->
+            <div class="sound-mixer">
+                <h3 class="mixer-title">Mix Sounds (up to 3)</h3>
+                <div id="selectedSounds" class="selected-sounds-list">
+                    <p class="no-sounds-message">Select sounds to mix</p>
+                </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="presets-section">
+                <h3 class="presets-title">Quick Presets</h3>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="storm">
+                        ⛈️ Stormy Night
+                    </button>
+                    <button class="preset-btn" data-preset="beach">
+                        🏖️ Beach Sunset
+                    </button>
+                    <button class="preset-btn" data-preset="forest">
+                        🌲 Forest Stream
+                    </button>
+                    <button class="preset-btn" data-preset="deep">
+                        🌙 Deep Sleep
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timer & Controls -->
+            <div class="sleep-controls">
+                <div class="timer-selector">
+                    <label>Sleep Timer</label>
+                    <div class="timer-buttons">
+                        <button class="timer-btn" data-time="15">15m</button>
+                        <button class="timer-btn" data-time="30">30m</button>
+                        <button class="timer-btn active" data-time="60">1h</button>
+                        <button class="timer-btn" data-time="0">All Night</button>
+                    </div>
+                </div>
+
+                <div class="alarm-toggle">
+                    <label for="smartAlarmToggle">
+                        Smart Alarm
+                        <span class="feature-hint">Gradual wake-up</span>
+                    </label>
+                    <input type="checkbox" id="smartAlarmToggle">
+                </div>
+
+                <div class="alarm-time" id="alarmTimeSelector" style="display: none;">
+                    <label>Wake up at</label>
+                    <input type="time" id="alarmTime" value="07:00">
+                </div>
+
+                <button id="startSleepSessionBtn" class="primary-btn full-width">
+                    Start Sleep Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep Session Screen -->
+    <div id="sleepSessionScreen" class="screen">
+        <div class="sleep-session-content">
+            <div class="sleep-session-header">
+                <div class="timer-display sleep-timer" id="sleepTimerDisplay">60:00</div>
+                <button id="stopSleepBtn" class="icon-btn">✕</button>
+            </div>
+
+            <div class="sleep-visuals">
+                <div class="sleep-animation">
+                    <div class="moon">🌙</div>
+                    <div class="stars">✨</div>
+                </div>
+                
+                <div class="playing-sounds" id="playingSoundsDisplay">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <div class="sleep-message">
+                    Drift into peaceful sleep...
+                </div>
+            </div>
+
+            <div class="volume-controls" id="sleepVolumeControls">
+                <!-- Dynamically populated with sliders for each sound -->
+            </div>
+
+            <button id="toggleVolumePanelBtn" class="secondary-btn">
+                Adjust Volumes
+            </button>
+        </div>
+    </div>
+
     <!-- Settings Icon (always visible) -->
     <button id="settingsBtn" class="settings-icon" aria-label="Settings">⚙️</button>
 
     <!-- Simple Settings Modal -->
     <div id="settingsModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content scrollable">
             <div class="modal-header">
                 <h3>Settings</h3>
                 <button class="close-modal">✕</button>
@@ -183,19 +340,9 @@
                 
                 <div class="setting-divider"></div>
                 
-                <div class="setting-item premium-section">
-                    <h4 class="premium-heading">Premium Features 💎</h4>
-                    <ul class="premium-features-list">
-                        <li>✓ Breath rhythm consistency analysis</li>
-                        <li>✓ Personalized relaxation score</li>
-                        <li>✓ AI-powered breathing insights</li>
-                        <li>✓ Breathing pattern detection</li>
-                        <li>✓ Session history & trends</li>
-                    </ul>
-                    <button id="unlockPremiumBtn" class="primary-btn">
-                        Unlock Premium (Coming Soon)
-                    </button>
-                    <p class="premium-note">Temporary: Click to unlock for testing</p>
+                <!-- Premium Status Display -->
+                <div class="setting-item premium-section" id="premiumSection">
+                    <!-- Will be populated dynamically based on premium status -->
                 </div>
                 
                 <div class="setting-divider"></div>
