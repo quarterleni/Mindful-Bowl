@@ -21,6 +21,9 @@ const state = {
     // Historical data for analytics
     sessionHistory: [], // Stores past session analytics
     
+    // Bowl selection
+    selectedBowl: 'medium', // Default bowl
+    
     // Sleep mode state
     currentMode: 'meditation', // 'meditation' or 'sleep'
     sleepSounds: {
@@ -31,6 +34,37 @@ const state = {
     },
     sleepSessionActive: false,
     activeSoundPlayers: [] // Audio context players
+};
+
+// Bowl Library - Different singing bowls
+const bowlLibrary = {
+    medium: {
+        name: 'Medium Tibetan Bowl',
+        description: 'Balanced and versatile',
+        frequency: 220, // Hz (A3)
+        free: true,
+        soundFile: 'sounds/bowls/medium-tibetan.mp3',
+        icon: '🎵',
+        color: '#c89b66' // Bronze
+    },
+    large: {
+        name: 'Large Deep Bowl',
+        description: 'Grounding and calming',
+        frequency: 174, // Hz (F3)
+        free: false,
+        soundFile: 'sounds/bowls/large-deep.mp3',
+        icon: '🔔',
+        color: '#8b6f47' // Dark bronze
+    },
+    crystal: {
+        name: 'Crystal Bowl',
+        description: 'Bright and energizing',
+        frequency: 528, // Hz (C5)
+        free: false,
+        soundFile: 'sounds/bowls/small-crystal.mp3',
+        icon: '💎',
+        color: '#a8c7e0' // Crystal blue
+    }
 };
 
 // DOM Elements
@@ -71,6 +105,60 @@ const ripples = [
 let audioContext;
 let masterGain;
 
+// Audio file cache
+const audioCache = {
+    bowls: {},
+    sleep: {}
+};
+
+// Preload audio files
+function preloadAudio() {
+    // Preload bowl sounds
+    Object.keys(bowlLibrary).forEach(bowlId => {
+        const bowl = bowlLibrary[bowlId];
+        if (bowl.free || state.isPremium) {
+            const audio = new Audio(bowl.soundFile);
+            audio.preload = 'auto';
+            audioCache.bowls[bowlId] = audio;
+        }
+    });
+    
+    // Preload sleep sounds
+    Object.keys(soundLibrary).forEach(soundId => {
+        const sound = soundLibrary[soundId];
+        if (sound.free || state.isPremium) {
+            const audio = new Audio(sound.soundFile);
+            audio.preload = 'auto';
+            audio.loop = true; // Sleep sounds loop
+            audioCache.sleep[soundId] = audio;
+        }
+    });
+}
+
+// Load additional audio when premium unlocked
+function loadPremiumAudio() {
+    // Load premium bowls
+    Object.keys(bowlLibrary).forEach(bowlId => {
+        const bowl = bowlLibrary[bowlId];
+        if (!bowl.free && !audioCache.bowls[bowlId]) {
+            const audio = new Audio(bowl.soundFile);
+            audio.preload = 'auto';
+            audioCache.bowls[bowlId] = audio;
+        }
+    });
+    
+    // Load premium sleep sounds
+    Object.keys(soundLibrary).forEach(soundId => {
+        const sound = soundLibrary[soundId];
+        if (!sound.free && !audioCache.sleep[soundId]) {
+            const audio = new Audio(sound.soundFile);
+            audio.preload = 'auto';
+            audio.loop = true;
+            audioCache.sleep[soundId] = audio;
+        }
+    });
+}
+
 // Initialize audio on first user interaction
 function initAudio() {
     if (!audioContext) {
@@ -81,14 +169,32 @@ function initAudio() {
     }
 }
 
-// Create singing bowl sound using Web Audio API
+// Play bowl sound using audio file OR synthesized (fallback)
 function playSingingBowl() {
+    const bowl = bowlLibrary[state.selectedBowl];
+    
+    // Try to play from audio file first
+    if (audioCache.bowls[state.selectedBowl]) {
+        const audio = audioCache.bowls[state.selectedBowl].cloneNode();
+        audio.volume = state.volume;
+        audio.play().catch(err => {
+            console.log('Audio play failed, using synthesized:', err);
+            playSynthesizedBowl(bowl.frequency);
+        });
+    } else {
+        // Fallback to synthesized sound
+        playSynthesizedBowl(bowl.frequency);
+    }
+}
+
+// Synthesized bowl sound (fallback when no audio file)
+function playSynthesizedBowl(frequency) {
     initAudio();
     
     const now = audioContext.currentTime;
     
     // Create oscillators for complex harmonic sound
-    const fundamentalFreq = 220; // A3
+    const fundamentalFreq = frequency;
     
     // Fundamental tone
     const fundamental = audioContext.createOscillator();
@@ -370,13 +476,43 @@ function saveSessionAnalysis(analysis) {
 
 // ========== SLEEP SOUND SYSTEM ==========
 
-// Sound library with metadata
+// Sound library with metadata and file paths
 const soundLibrary = {
-    rain: { name: 'Rain', icon: '🌧️', free: true },
-    ocean: { name: 'Ocean', icon: '🌊', free: true },
-    brownnoise: { name: 'Brown Noise', icon: '📊', free: false },
-    campfire: { name: 'Campfire', icon: '🔥', free: false },
-    stream: { name: 'Stream', icon: '💧', free: false }
+    rain: { 
+        name: 'Rain', 
+        icon: '🌧️', 
+        free: true,
+        soundFile: 'sounds/sleep/rain.mp3',
+        description: 'Gentle rainfall'
+    },
+    ocean: { 
+        name: 'Ocean', 
+        icon: '🌊', 
+        free: true,
+        soundFile: 'sounds/sleep/ocean.mp3',
+        description: 'Ocean waves'
+    },
+    brownnoise: { 
+        name: 'Brown Noise', 
+        icon: '📊', 
+        free: false,
+        soundFile: 'sounds/sleep/brownnoise.mp3',
+        description: 'Deep grounding noise'
+    },
+    campfire: { 
+        name: 'Campfire', 
+        icon: '🔥', 
+        free: false,
+        soundFile: 'sounds/sleep/campfire.mp3',
+        description: 'Crackling fire'
+    },
+    stream: { 
+        name: 'Stream', 
+        icon: '💧', 
+        free: false,
+        soundFile: 'sounds/sleep/stream.mp3',
+        description: 'Flowing water'
+    }
 };
 
 // Preset configurations
@@ -409,8 +545,35 @@ const soundPresets = {
     }
 };
 
-// Generate sleep sounds using Web Audio API
+// Generate sleep sounds using audio files OR Web Audio API (fallback)
 function generateSleepSound(soundType) {
+    // Try to use audio file first
+    if (audioCache.sleep[soundType]) {
+        const audio = audioCache.sleep[soundType].cloneNode();
+        audio.loop = true;
+        
+        return {
+            type: soundType,
+            audioElement: audio,
+            isPlaying: false,
+            setVolume: function(vol) {
+                this.audioElement.volume = vol;
+            },
+            play: function() {
+                this.audioElement.play().catch(err => {
+                    console.log('Sleep sound play failed:', err);
+                });
+                this.isPlaying = true;
+            },
+            stop: function() {
+                this.audioElement.pause();
+                this.audioElement.currentTime = 0;
+                this.isPlaying = false;
+            }
+        };
+    }
+    
+    // Fallback to synthesized sounds if no audio file
     if (!audioContext) {
         initAudio();
     }
@@ -420,7 +583,23 @@ function generateSleepSound(soundType) {
         gainNode: audioContext.createGain(),
         oscillators: [],
         noiseNode: null,
-        isPlaying: false
+        isPlaying: false,
+        setVolume: function(vol) {
+            this.gainNode.gain.value = vol;
+        },
+        play: function() {
+            this.isPlaying = true;
+        },
+        stop: function() {
+            if (this.noiseNode) {
+                this.noiseNode.stop();
+            }
+            this.oscillators.forEach(osc => osc.stop());
+            if (this.rainInterval) clearInterval(this.rainInterval);
+            if (this.crackleInterval) clearInterval(this.crackleInterval);
+            this.gainNode.disconnect();
+            this.isPlaying = false;
+        }
     };
     
     player.gainNode.connect(masterGain);
@@ -733,7 +912,17 @@ function startSleepSession() {
         `<div class="playing-sound-badge">${s.icon} ${s.name}</div>`
     ).join('');
     
-    // Create volume controls
+    // Start playing sounds FIRST
+    state.activeSoundPlayers = []; // Clear any previous players
+    state.sleepSounds.selected.forEach((sound, index) => {
+        const player = generateSleepSound(sound.sound);
+        player.setVolume(sound.volume / 100);
+        player.play();
+        player.soundIndex = index; // Store index for reference
+        state.activeSoundPlayers.push(player);
+    });
+    
+    // Create volume controls AFTER players are ready
     const volumeContainer = document.getElementById('sleepVolumeControls');
     volumeContainer.innerHTML = state.sleepSounds.selected.map((sound, index) => `
         <div class="volume-control-item">
@@ -747,24 +936,22 @@ function startSleepSession() {
         </div>
     `).join('');
     
-    // Start playing sounds
-    state.sleepSounds.selected.forEach((sound, index) => {
-        const player = generateSleepSound(sound.sound);
-        player.gainNode.gain.value = sound.volume / 100;
-        player.isPlaying = true;
-        state.activeSoundPlayers.push(player);
-    });
-    
-    // Setup live volume controls
-    volumeContainer.querySelectorAll('.sound-volume-slider').forEach(slider => {
-        slider.addEventListener('input', (e) => {
-            const index = parseInt(e.target.dataset.soundIndex);
-            const volume = parseInt(e.target.value) / 100;
-            if (state.activeSoundPlayers[index]) {
-                state.activeSoundPlayers[index].gainNode.gain.value = volume;
-            }
+    // Setup live volume controls - use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+        const sliders = volumeContainer.querySelectorAll('.sound-volume-slider');
+        
+        sliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const index = parseInt(e.target.dataset.soundIndex);
+                const volume = parseInt(e.target.value) / 100;
+                
+                if (state.activeSoundPlayers[index]) {
+                    state.activeSoundPlayers[index].setVolume(volume);
+                    state.sleepSounds.selected[index].volume = parseInt(e.target.value);
+                }
+            });
         });
-    });
+    }, 100);
     
     // Start timer if not "all night"
     if (state.sleepSounds.timer > 0) {
@@ -819,15 +1006,9 @@ function stopSleepSession() {
         state.timerInterval = null;
     }
     
-    // Stop all sound players
+    // Stop all sound players using unified interface
     state.activeSoundPlayers.forEach(player => {
-        if (player.noiseNode) {
-            player.noiseNode.stop();
-        }
-        player.oscillators.forEach(osc => osc.stop());
-        if (player.rainInterval) clearInterval(player.rainInterval);
-        if (player.crackleInterval) clearInterval(player.crackleInterval);
-        player.gainNode.disconnect();
+        player.stop();
     });
     
     state.activeSoundPlayers = [];
@@ -1198,6 +1379,7 @@ function updatePremiumSection() {
                 <li>✓ AI-powered breathing insights</li>
                 <li>✓ Breathing pattern detection</li>
                 <li>✓ All sleep sounds & mixing</li>
+                <li>✓ Premium singing bowls</li>
                 <li>✓ Smart alarm & presets</li>
             </ul>
             <button id="unlockPremiumBtn" class="primary-btn">
@@ -1214,7 +1396,8 @@ function updatePremiumSection() {
                 saveData();
                 updatePremiumSection();
                 updateSoundSelectionUI(); // Update sleep sounds availability
-                alert('Premium features unlocked! 🎉\n\nYou now have access to:\n- Advanced breath analysis\n- All sleep sounds\n- Sound mixing\n- Smart alarm\n- Presets');
+                loadPremiumAudio(); // Load premium audio files
+                alert('Premium features unlocked! 🎉\n\nYou now have access to:\n- Advanced breath analysis\n- All sleep sounds\n- Premium singing bowls\n- Sound mixing\n- Smart alarm\n- Presets');
                 closeSettings();
             });
         }
@@ -1384,6 +1567,9 @@ function init() {
     loadData();
     showScreen('welcome');
     updatePremiumSection(); // Initialize premium display
+    
+    // Preload audio files
+    preloadAudio();
     
     // Register service worker for PWA (if available)
     if ('serviceWorker' in navigator) {
