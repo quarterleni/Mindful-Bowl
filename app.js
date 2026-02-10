@@ -111,50 +111,66 @@ const audioCache = {
     sleep: {}
 };
 
-// Preload audio files
+// Preload audio files — only cache if the file actually loads
 function preloadAudio() {
-    // Preload bowl sounds
+    // Preload free bowl sounds
     Object.keys(bowlLibrary).forEach(bowlId => {
         const bowl = bowlLibrary[bowlId];
         if (bowl.free || state.isPremium) {
-            const audio = new Audio(bowl.soundFile);
-            audio.preload = 'auto';
-            audioCache.bowls[bowlId] = audio;
+            tryLoadAudio(bowl.soundFile, (audio) => {
+                audio.preload = 'auto';
+                audioCache.bowls[bowlId] = audio;
+            });
         }
     });
-    
-    // Preload sleep sounds
+
+    // Preload free sleep sounds
     Object.keys(soundLibrary).forEach(soundId => {
         const sound = soundLibrary[soundId];
         if (sound.free || state.isPremium) {
-            const audio = new Audio(sound.soundFile);
-            audio.preload = 'auto';
-            audio.loop = true; // Sleep sounds loop
-            audioCache.sleep[soundId] = audio;
+            tryLoadAudio(sound.soundFile, (audio) => {
+                audio.preload = 'auto';
+                audio.loop = true;
+                audioCache.sleep[soundId] = audio;
+            });
         }
     });
 }
 
-// Load additional audio when premium unlocked
+// Load an audio file only if it actually exists; call onSuccess if it does
+function tryLoadAudio(src, onSuccess) {
+    const audio = new Audio();
+    audio.addEventListener('canplaythrough', () => {
+        onSuccess(audio);
+    }, { once: true });
+    audio.addEventListener('error', () => {
+        // File not found or invalid — do nothing, fallback will be used
+        console.log('Audio file not available, will use synthesized fallback:', src);
+    }, { once: true });
+    audio.src = src;
+    audio.load();
+}
+
+// Load premium audio when unlocked
 function loadPremiumAudio() {
-    // Load premium bowls
     Object.keys(bowlLibrary).forEach(bowlId => {
         const bowl = bowlLibrary[bowlId];
         if (!bowl.free && !audioCache.bowls[bowlId]) {
-            const audio = new Audio(bowl.soundFile);
-            audio.preload = 'auto';
-            audioCache.bowls[bowlId] = audio;
+            tryLoadAudio(bowl.soundFile, (audio) => {
+                audio.preload = 'auto';
+                audioCache.bowls[bowlId] = audio;
+            });
         }
     });
-    
-    // Load premium sleep sounds
+
     Object.keys(soundLibrary).forEach(soundId => {
         const sound = soundLibrary[soundId];
         if (!sound.free && !audioCache.sleep[soundId]) {
-            const audio = new Audio(sound.soundFile);
-            audio.preload = 'auto';
-            audio.loop = true;
-            audioCache.sleep[soundId] = audio;
+            tryLoadAudio(sound.soundFile, (audio) => {
+                audio.preload = 'auto';
+                audio.loop = true;
+                audioCache.sleep[soundId] = audio;
+            });
         }
     });
 }
@@ -1283,6 +1299,7 @@ function saveData() {
         hapticEnabled: state.hapticEnabled,
         tapOnExhale: state.tapOnExhale,
         isPremium: state.isPremium,
+        selectedBowl: state.selectedBowl,
         sessionHistory: state.sessionHistory
     };
     localStorage.setItem('mindfulBowlData', JSON.stringify(data));
@@ -1301,6 +1318,7 @@ function loadData() {
         state.hapticEnabled = data.hapticEnabled !== undefined ? data.hapticEnabled : true;
         state.tapOnExhale = data.tapOnExhale !== undefined ? data.tapOnExhale : true;
         state.isPremium = data.isPremium || false;
+        state.selectedBowl = data.selectedBowl || 'medium';
         state.sessionHistory = data.sessionHistory || [];
         
         // Check if it's a new day
@@ -1314,6 +1332,7 @@ function loadData() {
         updateVolumeControl();
         updateHapticControl();
         updateTapOnExhaleControl();
+        updateBowlSelectorUI();
     }
 }
 
@@ -1361,43 +1380,48 @@ function updatePremiumSection() {
     if (!premiumSection) return;
     
     if (state.isPremium) {
-        // Show premium active status
         premiumSection.innerHTML = `
             <div class="premium-status-active">
                 <div class="premium-status-icon">💎</div>
                 <h4 class="premium-status-title">Premium Active</h4>
-                <p class="premium-status-message">You have access to all premium features!</p>
+                <p class="premium-status-message">You have full access to all premium features!</p>
             </div>
         `;
     } else {
-        // Show unlock option
         premiumSection.innerHTML = `
-            <h4 class="premium-heading">Premium Features 💎</h4>
+            <h4 class="premium-heading">Unlock Premium 💎</h4>
+            <p class="premium-subheading">Meditation</p>
             <ul class="premium-features-list">
-                <li>✓ Breath rhythm consistency analysis</li>
-                <li>✓ Personalized relaxation score</li>
-                <li>✓ AI-powered breathing insights</li>
-                <li>✓ Breathing pattern detection</li>
-                <li>✓ All sleep sounds & mixing</li>
-                <li>✓ Premium singing bowls</li>
-                <li>✓ Smart alarm & presets</li>
+                <li>🔔 Large Deep Bowl (174 Hz)</li>
+                <li>💎 Crystal Bowl (528 Hz)</li>
+                <li>📊 Breath consistency & relaxation score</li>
+                <li>🧠 AI-powered breathing insights</li>
+                <li>🌊 Breathing pattern detection</li>
+            </ul>
+            <p class="premium-subheading">Sleep Sounds</p>
+            <ul class="premium-features-list">
+                <li>📊 Brown Noise</li>
+                <li>🔥 Campfire crackle</li>
+                <li>💧 Forest stream</li>
+                <li>🎛️ Mix up to 3 sounds</li>
+                <li>⏰ Smart alarm (gradual wake-up)</li>
+                <li>🎚️ Per-sound volume control</li>
             </ul>
             <button id="unlockPremiumBtn" class="primary-btn">
                 Unlock Premium (Coming Soon)
             </button>
-            <p class="premium-note">Temporary: Click to unlock for testing</p>
+            <p class="premium-note">Tap to unlock for testing</p>
         `;
-        
-        // Re-attach event listener
+
         const unlockBtn = document.getElementById('unlockPremiumBtn');
         if (unlockBtn) {
             unlockBtn.addEventListener('click', () => {
                 state.isPremium = true;
                 saveData();
                 updatePremiumSection();
-                updateSoundSelectionUI(); // Update sleep sounds availability
-                loadPremiumAudio(); // Load premium audio files
-                alert('Premium features unlocked! 🎉\n\nYou now have access to:\n- Advanced breath analysis\n- All sleep sounds\n- Premium singing bowls\n- Sound mixing\n- Smart alarm\n- Presets');
+                updateSoundSelectionUI();
+                updateBowlSelectorUI();
+                loadPremiumAudio();
                 closeSettings();
             });
         }
@@ -1554,28 +1578,90 @@ buttons.stopSleep.addEventListener('click', () => {
     }
 });
 
-// Toggle volume panel
+// Toggle volume panel — now uses the overlay, not an inline collapsed div
 buttons.toggleVolumePanel.addEventListener('click', () => {
-    const volumeControls = document.getElementById('sleepVolumeControls');
-    volumeControls.classList.toggle('expanded');
-    buttons.toggleVolumePanel.textContent = 
-        volumeControls.classList.contains('expanded') ? 'Hide Volumes' : 'Adjust Volumes';
+    document.getElementById('volumePanelOverlay').classList.add('active');
+});
+
+const closeVolumePanelBtn = document.getElementById('closeVolumePanelBtn');
+if (closeVolumePanelBtn) {
+    closeVolumePanelBtn.addEventListener('click', () => {
+        document.getElementById('volumePanelOverlay').classList.remove('active');
+    });
+}
+
+// Close volume overlay by tapping backdrop
+document.getElementById('volumePanelOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+        e.currentTarget.classList.remove('active');
+    }
+});
+
+// ===== BUG 4: Bowl Selection =====
+
+function selectBowl(bowlId) {
+    const bowl = bowlLibrary[bowlId];
+
+    // Block premium bowls for free users
+    if (!bowl.free && !state.isPremium) {
+        alert('This bowl is a premium feature. Unlock premium to access all bowls!');
+        return;
+    }
+
+    state.selectedBowl = bowlId;
+    saveData();
+    updateBowlSelectorUI();
+
+    // Play a preview of the selected bowl
+    initAudio();
+    playSynthesizedBowl(bowl.frequency);
+}
+
+function updateBowlSelectorUI() {
+    document.querySelectorAll('.bowl-option').forEach(option => {
+        const bowlId = option.dataset.bowl;
+        const bowl = bowlLibrary[bowlId];
+
+        // Highlight selected
+        option.classList.toggle('selected', bowlId === state.selectedBowl);
+
+        // Show lock for premium bowls when not premium
+        const existingLock = option.querySelector('.bowl-lock');
+        if (!bowl.free && !state.isPremium) {
+            option.classList.add('locked');
+            if (!existingLock) {
+                const lock = document.createElement('span');
+                lock.className = 'bowl-lock';
+                lock.textContent = '🔒';
+                option.appendChild(lock);
+            }
+        } else {
+            option.classList.remove('locked');
+            if (existingLock) existingLock.remove();
+        }
+    });
+}
+
+// Attach click listeners to bowl options
+document.querySelectorAll('.bowl-option').forEach(option => {
+    option.addEventListener('click', () => {
+        selectBowl(option.dataset.bowl);
+    });
 });
 
 // Initialize app
 function init() {
     loadData();
     showScreen('welcome');
-    updatePremiumSection(); // Initialize premium display
+    updatePremiumSection();
+    updateBowlSelectorUI();
     
     // Preload audio files
     preloadAudio();
     
     // Register service worker for PWA (if available)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js').catch(() => {
-            // Service worker registration failed, but app still works
-        });
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
     }
 }
 
