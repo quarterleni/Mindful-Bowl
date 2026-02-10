@@ -105,75 +105,77 @@
 
     <!-- Completion Screen -->
     <div id="completionScreen" class="screen">
-        <div class="completion-content">
-            <div class="completion-icon">✨</div>
-            <h2 class="completion-title">Session Complete</h2>
-            
-            <div class="session-summary">
-                <div class="summary-item">
-                    <span class="summary-number" id="completionBreaths">0</span>
-                    <span class="summary-label">breaths taken</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-number">3:00</span>
-                    <span class="summary-label">minutes</span>
-                </div>
-            </div>
-
-            <!-- FREE: Breath Rate -->
-            <div class="analysis-section free-feature">
-                <h3 class="analysis-title">Breath Rate</h3>
-                <div class="analysis-metric">
-                    <span class="metric-value" id="bpmDisplay">0</span>
-                    <span class="metric-unit">BPM</span>
-                </div>
-                <p class="metric-label" id="bpmInterpretation">Calculating...</p>
-            </div>
-
-            <!-- PREMIUM: Detailed Analysis -->
-            <div class="analysis-section premium-feature locked">
-                <div class="premium-overlay">
-                    <div class="lock-icon">🔒</div>
-                    <p class="premium-text">Unlock Premium for detailed breath analysis</p>
-                    <button class="mini-unlock-btn" onclick="document.getElementById('settingsBtn').click()">View Premium</button>
-                </div>
+        <div class="completion-content scrollable-screen">
+            <div class="scroll-inner">
+                <div class="completion-icon">✨</div>
+                <h2 class="completion-title">Session Complete</h2>
                 
-                <div class="premium-content">
-                    <h3 class="analysis-title">Advanced Metrics</h3>
-                    
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <span class="metric-label">Consistency</span>
-                            <span class="metric-value" id="consistencyDisplay">--</span>
-                        </div>
-                        <div class="metric-card">
-                            <span class="metric-label">Relaxation Score</span>
-                            <span class="metric-value" id="relaxationDisplay">--</span>
-                        </div>
+                <div class="session-summary">
+                    <div class="summary-item">
+                        <span class="summary-number" id="completionBreaths">0</span>
+                        <span class="summary-label">breaths taken</span>
                     </div>
-                    
-                    <div class="insight-box" id="insightDisplay">
-                        Your personalized insight will appear here...
-                    </div>
-                    
-                    <div class="pattern-box" id="patternDisplay">
-                        Breathing pattern detection...
+                    <div class="summary-item">
+                        <span class="summary-number">3:00</span>
+                        <span class="summary-label">minutes</span>
                     </div>
                 </div>
-            </div>
 
-            <p class="completion-message">Take a moment to notice how you feel</p>
+                <!-- FREE: Breath Rate -->
+                <div class="analysis-section free-feature">
+                    <h3 class="analysis-title">Breath Rate</h3>
+                    <div class="analysis-metric">
+                        <span class="metric-value" id="bpmDisplay">0</span>
+                        <span class="metric-unit">BPM</span>
+                    </div>
+                    <p class="metric-label" id="bpmInterpretation">Calculating...</p>
+                </div>
 
-            <div class="completion-actions">
-                <button id="anotherSessionBtn" class="primary-btn">Another Session</button>
-                <button id="doneBtn" class="secondary-btn">Done for Now</button>
-            </div>
+                <!-- PREMIUM: Detailed Analysis -->
+                <div class="analysis-section premium-feature locked">
+                    <div class="premium-overlay">
+                        <div class="lock-icon">🔒</div>
+                        <p class="premium-text">Unlock Premium for detailed breath analysis</p>
+                        <button class="mini-unlock-btn" onclick="document.getElementById('settingsBtn').click()">View Premium</button>
+                    </div>
+                    
+                    <div class="premium-content">
+                        <h3 class="analysis-title">Advanced Metrics</h3>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <span class="metric-label">Consistency</span>
+                                <span class="metric-value" id="consistencyDisplay">--</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-label">Relaxation Score</span>
+                                <span class="metric-value" id="relaxationDisplay">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-box" id="insightDisplay">
+                            Your personalized insight will appear here...
+                        </div>
+                        
+                        <div class="pattern-box" id="patternDisplay">
+                            Breathing pattern detection...
+                        </div>
+                    </div>
+                </div>
 
-            <div class="daily-reminder">
-                <p class="reminder-text">
-                    <span id="sessionsToday">1</span> session today • 
-                    Try for 2-3 short sessions daily
-                </p>
+                <p class="completion-message">Take a moment to notice how you feel</p>
+
+                <div class="completion-actions">
+                    <button id="anotherSessionBtn" class="primary-btn">Another Session</button>
+                    <button id="doneBtn" class="secondary-btn">Done for Now</button>
+                </div>
+
+                <div class="daily-reminder">
+                    <p class="reminder-text">
+                        <span id="sessionsToday">1</span> session today • 
+                        Try for 2-3 short sessions daily
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -298,13 +300,22 @@
                 </div>
             </div>
 
-            <div class="volume-controls" id="sleepVolumeControls">
-                <!-- Dynamically populated with sliders for each sound -->
-            </div>
-
             <button id="toggleVolumePanelBtn" class="secondary-btn">
-                Adjust Volumes
+                🎚️ Adjust Volumes
             </button>
+        </div>
+    </div>
+
+    <!-- Volume Panel Overlay (separate from session screen) -->
+    <div id="volumePanelOverlay" class="volume-overlay">
+        <div class="volume-panel">
+            <div class="volume-panel-header">
+                <h3>Adjust Volumes</h3>
+                <button id="closeVolumePanelBtn" class="icon-btn">✕</button>
+            </div>
+            <div id="sleepVolumeControls" class="volume-controls-list">
+                <!-- Dynamically populated -->
+            </div>
         </div>
     </div>
 
@@ -335,6 +346,33 @@
                     <div class="toggle-with-label">
                         <input type="checkbox" id="tapOnExhaleToggle" checked>
                         <span class="toggle-info">When off, tap on inhale instead</span>
+                    </div>
+                </div>
+
+                <div class="setting-divider"></div>
+
+                <!-- Bowl Selection -->
+                <div class="setting-item">
+                    <label>Singing Bowl</label>
+                    <div class="bowl-selector" id="bowlSelector">
+                        <div class="bowl-option selected" data-bowl="medium">
+                            <span class="bowl-option-icon">🎵</span>
+                            <span class="bowl-option-name">Medium</span>
+                            <span class="bowl-option-freq">220 Hz</span>
+                            <span class="bowl-option-badge free-badge">FREE</span>
+                        </div>
+                        <div class="bowl-option" data-bowl="large">
+                            <span class="bowl-option-icon">🔔</span>
+                            <span class="bowl-option-name">Large Deep</span>
+                            <span class="bowl-option-freq">174 Hz</span>
+                            <span class="bowl-option-badge premium-badge">PRO</span>
+                        </div>
+                        <div class="bowl-option" data-bowl="crystal">
+                            <span class="bowl-option-icon">💎</span>
+                            <span class="bowl-option-name">Crystal</span>
+                            <span class="bowl-option-freq">528 Hz</span>
+                            <span class="bowl-option-badge premium-badge">PRO</span>
+                        </div>
                     </div>
                 </div>
                 
